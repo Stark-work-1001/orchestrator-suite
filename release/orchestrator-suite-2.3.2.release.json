@@ -1,0 +1,15 @@
+{
+  "version": "2.3.2",
+  "archive": "<path>",
+  "sha256": "7999188f81a79d0056550710c261875a2fe7564147b182382f5aeff9b5cf2ef1",
+  "packagedFiles": 1920,
+  "extractionVerified": true,
+  "privacyScan": {
+    "scannedFiles": 1917,
+    "rules": 16,
+    "findings": 0,
+    "rescanFindings": 0
+  },
+  "includesDependencies": true,
+  "liveApplication": "not verified; see DEPLOYMENT.md"
+}
