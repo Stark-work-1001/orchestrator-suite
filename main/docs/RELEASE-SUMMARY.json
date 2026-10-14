@@ -1,0 +1,118 @@
+{
+  "version": "3.0.2",
+  "ok": true,
+  "liveHost": "not verified",
+  "paidJudgeCalls": 0,
+  "preflight": "pass",
+  "checks": [
+    {
+      "command": "node scripts/typecheck.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-dependencies.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/client.test.mjs tests/runtime.test.mjs tests/deployment.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/preflight.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/privacy-scan.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/sync-public.mjs",
+      "exitCode": 0
+    }
+  ],
+  "vendoredPackages": [
+    "@asamuzakjp/css-color",
+    "@csstools/color-helpers",
+    "@csstools/css-calc",
+    "@csstools/css-color-parser",
+    "@csstools/css-parser-algorithms",
+    "@csstools/css-tokenizer",
+    "@esbuild/win32-x64",
+    "@types/node",
+    "@types/prop-types",
+    "@types/react",
+    "agent-base",
+    "asynckit",
+    "call-bind-apply-helpers",
+    "combined-stream",
+    "cssstyle",
+    "csstype",
+    "data-urls",
+    "debug",
+    "decimal.js",
+    "delayed-stream",
+    "dunder-proto",
+    "entities",
+    "es-define-property",
+    "es-errors",
+    "es-object-atoms",
+    "es-set-tostringtag",
+    "esbuild",
+    "form-data",
+    "function-bind",
+    "get-intrinsic",
+    "get-proto",
+    "gopd",
+    "has-symbols",
+    "has-tostringtag",
+    "hasown",
+    "html-encoding-sniffer",
+    "http-proxy-agent",
+    "https-proxy-agent",
+    "iconv-lite",
+    "is-potential-custom-element-name",
+    "js-tokens",
+    "jsdom",
+    "loose-envify",
+    "lru-cache",
+    "math-intrinsics",
+    "mime-db",
+    "mime-types",
+    "ms",
+    "nwsapi",
+    "parse5",
+    "punycode",
+    "react",
+    "react-dom",
+    "rrweb-cssom",
+    "safer-buffer",
+    "saxes",
+    "scheduler",
+    "symbol-tree",
+    "tldts",
+    "tldts-core",
+    "tough-cookie",
+    "tr46",
+    "typescript",
+    "undici-types",
+    "w3c-xmlserializer",
+    "webidl-conversions",
+    "whatwg-encoding",
+    "whatwg-mimetype",
+    "whatwg-url",
+    "ws",
+    "xml-name-validator",
+    "xmlchars"
+  ],
+  "excludedFromPackage": [
+    "docs/installation.json",
+    "docs/plugin-audit.json",
+    "docs/verification.json",
+    "docs/preflight.json",
+    "docs/preflight-baseline.json"
+  ]
+}

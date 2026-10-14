@@ -1,0 +1,371 @@
+{
+  "date": "2026-10-12T13:46:27.776Z",
+  "method": "Copied from existing local development packages, no network; all dependencies materialized under suite node_modules",
+  "packages": [
+    {
+      "name": "react",
+      "version": "18.3.1",
+      "directory": "node_modules/react"
+    },
+    {
+      "name": "loose-envify",
+      "version": "1.4.0",
+      "directory": "node_modules/loose-envify"
+    },
+    {
+      "name": "js-tokens",
+      "version": "4.0.0",
+      "directory": "node_modules/js-tokens"
+    },
+    {
+      "name": "react-dom",
+      "version": "18.3.1",
+      "directory": "node_modules/react-dom"
+    },
+    {
+      "name": "scheduler",
+      "version": "0.23.2",
+      "directory": "node_modules/scheduler"
+    },
+    {
+      "name": "jsdom",
+      "version": "25.0.1",
+      "directory": "node_modules/jsdom"
+    },
+    {
+      "name": "cssstyle",
+      "version": "4.6.0",
+      "directory": "node_modules/cssstyle"
+    },
+    {
+      "name": "@asamuzakjp/css-color",
+      "version": "3.2.0",
+      "directory": "node_modules/@asamuzakjp/css-color"
+    },
+    {
+      "name": "@csstools/css-calc",
+      "version": "2.1.4",
+      "directory": "node_modules/@csstools/css-calc"
+    },
+    {
+      "name": "@csstools/css-color-parser",
+      "version": "3.1.0",
+      "directory": "node_modules/@csstools/css-color-parser"
+    },
+    {
+      "name": "@csstools/color-helpers",
+      "version": "5.1.0",
+      "directory": "node_modules/@csstools/color-helpers"
+    },
+    {
+      "name": "@csstools/css-parser-algorithms",
+      "version": "3.0.5",
+      "directory": "node_modules/@csstools/css-parser-algorithms"
+    },
+    {
+      "name": "@csstools/css-tokenizer",
+      "version": "3.0.4",
+      "directory": "node_modules/@csstools/css-tokenizer"
+    },
+    {
+      "name": "lru-cache",
+      "version": "10.4.3",
+      "directory": "node_modules/lru-cache"
+    },
+    {
+      "name": "rrweb-cssom",
+      "version": "0.8.0",
+      "directory": "node_modules/rrweb-cssom"
+    },
+    {
+      "name": "data-urls",
+      "version": "5.0.0",
+      "directory": "node_modules/data-urls"
+    },
+    {
+      "name": "whatwg-mimetype",
+      "version": "4.0.0",
+      "directory": "node_modules/whatwg-mimetype"
+    },
+    {
+      "name": "whatwg-url",
+      "version": "14.2.0",
+      "directory": "node_modules/whatwg-url"
+    },
+    {
+      "name": "tr46",
+      "version": "5.1.1",
+      "directory": "node_modules/tr46"
+    },
+    {
+      "name": "punycode",
+      "version": "2.3.1",
+      "directory": "node_modules/punycode"
+    },
+    {
+      "name": "webidl-conversions",
+      "version": "7.0.0",
+      "directory": "node_modules/webidl-conversions"
+    },
+    {
+      "name": "decimal.js",
+      "version": "10.6.0",
+      "directory": "node_modules/decimal.js"
+    },
+    {
+      "name": "form-data",
+      "version": "4.0.6",
+      "directory": "node_modules/form-data"
+    },
+    {
+      "name": "asynckit",
+      "version": "0.4.0",
+      "directory": "node_modules/asynckit"
+    },
+    {
+      "name": "combined-stream",
+      "version": "1.0.8",
+      "directory": "node_modules/combined-stream"
+    },
+    {
+      "name": "delayed-stream",
+      "version": "1.0.0",
+      "directory": "node_modules/delayed-stream"
+    },
+    {
+      "name": "es-set-tostringtag",
+      "version": "2.1.0",
+      "directory": "node_modules/es-set-tostringtag"
+    },
+    {
+      "name": "es-errors",
+      "version": "1.3.0",
+      "directory": "node_modules/es-errors"
+    },
+    {
+      "name": "get-intrinsic",
+      "version": "1.3.0",
+      "directory": "node_modules/get-intrinsic"
+    },
+    {
+      "name": "call-bind-apply-helpers",
+      "version": "1.0.2",
+      "directory": "node_modules/call-bind-apply-helpers"
+    },
+    {
+      "name": "function-bind",
+      "version": "1.1.2",
+      "directory": "node_modules/function-bind"
+    },
+    {
+      "name": "es-define-property",
+      "version": "1.0.1",
+      "directory": "node_modules/es-define-property"
+    },
+    {
+      "name": "es-object-atoms",
+      "version": "1.1.2",
+      "directory": "node_modules/es-object-atoms"
+    },
+    {
+      "name": "get-proto",
+      "version": "1.0.1",
+      "directory": "node_modules/get-proto"
+    },
+    {
+      "name": "dunder-proto",
+      "version": "1.0.1",
+      "directory": "node_modules/dunder-proto"
+    },
+    {
+      "name": "gopd",
+      "version": "1.2.0",
+      "directory": "node_modules/gopd"
+    },
+    {
+      "name": "has-symbols",
+      "version": "1.1.0",
+      "directory": "node_modules/has-symbols"
+    },
+    {
+      "name": "hasown",
+      "version": "2.0.4",
+      "directory": "node_modules/hasown"
+    },
+    {
+      "name": "math-intrinsics",
+      "version": "1.1.0",
+      "directory": "node_modules/math-intrinsics"
+    },
+    {
+      "name": "has-tostringtag",
+      "version": "1.0.2",
+      "directory": "node_modules/has-tostringtag"
+    },
+    {
+      "name": "mime-types",
+      "version": "2.1.35",
+      "directory": "node_modules/mime-types"
+    },
+    {
+      "name": "mime-db",
+      "version": "1.52.0",
+      "directory": "node_modules/mime-db"
+    },
+    {
+      "name": "html-encoding-sniffer",
+      "version": "4.0.0",
+      "directory": "node_modules/html-encoding-sniffer"
+    },
+    {
+      "name": "whatwg-encoding",
+      "version": "3.1.1",
+      "directory": "node_modules/whatwg-encoding"
+    },
+    {
+      "name": "iconv-lite",
+      "version": "0.6.3",
+      "directory": "node_modules/iconv-lite"
+    },
+    {
+      "name": "safer-buffer",
+      "version": "2.1.2",
+      "directory": "node_modules/safer-buffer"
+    },
+    {
+      "name": "http-proxy-agent",
+      "version": "7.0.2",
+      "directory": "node_modules/http-proxy-agent"
+    },
+    {
+      "name": "agent-base",
+      "version": "7.1.4",
+      "directory": "node_modules/agent-base"
+    },
+    {
+      "name": "debug",
+      "version": "4.4.3",
+      "directory": "node_modules/debug"
+    },
+    {
+      "name": "ms",
+      "version": "2.1.3",
+      "directory": "node_modules/ms"
+    },
+    {
+      "name": "https-proxy-agent",
+      "version": "7.0.6",
+      "directory": "node_modules/https-proxy-agent"
+    },
+    {
+      "name": "is-potential-custom-element-name",
+      "version": "1.0.1",
+      "directory": "node_modules/is-potential-custom-element-name"
+    },
+    {
+      "name": "nwsapi",
+      "version": "2.2.28",
+      "directory": "node_modules/nwsapi"
+    },
+    {
+      "name": "parse5",
+      "version": "7.3.0",
+      "directory": "node_modules/parse5"
+    },
+    {
+      "name": "entities",
+      "version": "6.0.1",
+      "directory": "node_modules/entities"
+    },
+    {
+      "name": "rrweb-cssom",
+      "version": "0.7.1",
+      "directory": "node_modules/jsdom/node_modules/rrweb-cssom"
+    },
+    {
+      "name": "saxes",
+      "version": "6.0.0",
+      "directory": "node_modules/saxes"
+    },
+    {
+      "name": "xmlchars",
+      "version": "2.2.0",
+      "directory": "node_modules/xmlchars"
+    },
+    {
+      "name": "symbol-tree",
+      "version": "3.2.4",
+      "directory": "node_modules/symbol-tree"
+    },
+    {
+      "name": "tough-cookie",
+      "version": "5.1.2",
+      "directory": "node_modules/tough-cookie"
+    },
+    {
+      "name": "tldts",
+      "version": "6.1.86",
+      "directory": "node_modules/tldts"
+    },
+    {
+      "name": "tldts-core",
+      "version": "6.1.86",
+      "directory": "node_modules/tldts-core"
+    },
+    {
+      "name": "w3c-xmlserializer",
+      "version": "5.0.0",
+      "directory": "node_modules/w3c-xmlserializer"
+    },
+    {
+      "name": "xml-name-validator",
+      "version": "5.0.0",
+      "directory": "node_modules/xml-name-validator"
+    },
+    {
+      "name": "ws",
+      "version": "8.22.0",
+      "directory": "node_modules/ws"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "directory": "node_modules/typescript"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "directory": "node_modules/esbuild"
+    },
+    {
+      "name": "@esbuild/win32-x64",
+      "version": "0.28.2",
+      "directory": "node_modules/@esbuild/win32-x64"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.4",
+      "directory": "node_modules/@types/node"
+    },
+    {
+      "name": "undici-types",
+      "version": "6.21.0",
+      "directory": "node_modules/undici-types"
+    },
+    {
+      "name": "@types/react",
+      "version": "18.3.31",
+      "directory": "node_modules/@types/react"
+    },
+    {
+      "name": "@types/prop-types",
+      "version": "15.7.15",
+      "directory": "node_modules/@types/prop-types"
+    },
+    {
+      "name": "csstype",
+      "version": "3.2.3",
+      "directory": "node_modules/csstype"
+    }
+  ]
+}

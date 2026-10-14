@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-14T15:30:23.977Z",
+  "version": "3.0.2",
+  "packages": 73,
+  "allInsideSuite": true,
+  "hostImports": [
+    "node:fs",
+    "node:url",
+    "node:crypto",
+    "node:fs/promises",
+    "node:path"
+  ],
+  "failures": [],
+  "note": "React is supplied by the public host client module registry; development React and test/build packages are also physically bundled inside this suite."
+}
