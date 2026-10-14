@@ -1,0 +1,68 @@
+{
+  "name": "orchestrator-suite",
+  "version": "3.0.2",
+  "description": "有序流程评估、引导执行、显式待办决策与必尝试交付验收",
+  "type": "module",
+  "main": "lib/host-3.0.2.js",
+  "exports": {
+    ".": "./lib/host-3.0.2.js",
+    "./host": "./lib/host-3.0.2.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/host-3.0.2.js",
+    "lib/host-3.0.2.js.map",
+    "lib/client.js",
+    "lib/client.css",
+    "src",
+    "presets",
+    "locale",
+    "suite.config.json",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "PRIVACY.md",
+    ".gitignore",
+    "DEPLOYMENT.md",
+    "LICENSE",
+    "scripts",
+    "tests",
+    "tsconfig.json",
+    "docs",
+    "node_modules"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ]
+    }
+  },
+  "engines": {
+    "node": ">=22.19",
+    "dsh": ">=0.2.1-0 <0.3"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "node scripts/typecheck.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "@types/react": "18.3.31",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "jsdom": "25.0.1",
+    "typescript": "5.9.3",
+    "esbuild": "0.28.2"
+  },
+  "license": "MIT"
+}

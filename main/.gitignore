@@ -1,0 +1,11 @@
+node_modules/
+.validation/
+archive/
+docs/installation.json
+docs/plugin-audit.json
+docs/verification.json
+docs/preflight*.json
+docs/protected-baseline*
+*.log
+.env
+.env.*

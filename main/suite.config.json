@@ -1,0 +1,19 @@
+{
+  "memoryRoots": [],
+  "assetRoots": [],
+  "progressPollMs": 1500,
+  "memoryDepth": 2,
+  "memoryFileLimit": 100,
+  "memoryReadBytes": 12000,
+  "catalogLimit": 500,
+  "contextCatalogLimit": 40,
+  "contextDescriptionChars": 180,
+  "scanTimeoutMs": 10000,
+  "verifierTimeoutMs": 180000,
+  "recentSessionLimit": 20,
+  "relicEnabled": true,
+  "verifierTool": "verifier_compare",
+  "planningMinChars": 600,
+  "planningMinParagraphs": 4,
+  "planningParagraphMinChars": 120
+}

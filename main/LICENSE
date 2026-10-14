@@ -1,0 +1,39 @@
+MIT License
+
+Copyright (c) 2026 Stark-work-1001
+Copyright (c) 2026 orchestrator-plugin
+
+本插件由三部分构成，授权分区如下（不要笼统地都算作 MIT）：
+
+1. **本作新写的全部内容** —— 技能 `unified-orchestrator` / `mcp-orchestrator` /
+   `plugin-orchestrator`、MCP 服务端 `mcp/orchestrator_server.py` 与 `mcp/check_env.py`、
+   钩子 `hooks/`、命令 `commands/`、脚本 `scripts/`、参考文档 `references/`、
+   以及包级 README / CHANGELOG —— 均以 **MIT** 授权。
+
+2. **承接的既有技能** —— `skills/skill-orchestrator/`（含其 `references/` 与
+   `scripts/inventory_skills.py`）逐字节承接自本插件早期版本的同名技能 v1.1，
+   **沿用 MIT**。其中的判定细则与稳定默认机制在 v1.1 变更记录中
+   已注明借鉴自 https://github.com/Yuzc-001/skill-router （MIT），本插件一并沿用。
+
+3. **不含**第三方上游代码。本插件的 MCP 服务端为纯标准库自研实现，未引入任何
+   上游 MCP 组件，因此不存在 AGPL/GPL 分区问题。
+
+---
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
