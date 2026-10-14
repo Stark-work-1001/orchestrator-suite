@@ -1,0 +1,7 @@
+dev/
+main/node_modules/
+main/.validation/
+main/.git/
+*.log
+.env
+.env.*
