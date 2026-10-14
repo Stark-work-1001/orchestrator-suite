@@ -1,0 +1,16 @@
+{
+  "version": "3.0.2",
+  "archive": "<path>",
+  "sha256": "6be97a0ec417b620b356d2f1982c877450cc44614b69799877615cd48b42dba2",
+  "bytes": 14286887,
+  "packagedFiles": 1934,
+  "extractionVerified": true,
+  "privacyScan": {
+    "scannedFiles": 1931,
+    "rules": 16,
+    "findings": 0,
+    "rescanFindings": 0
+  },
+  "includesDependencies": true,
+  "liveApplication": "not verified; see DEPLOYMENT.md"
+}
