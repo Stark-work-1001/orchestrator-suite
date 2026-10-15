@@ -1,5 +1,5 @@
 {
-  "version": "3.0.2",
+  "version": "3.0.3",
   "ok": true,
   "liveHost": "not verified",
   "paidJudgeCalls": 0,
@@ -23,14 +23,6 @@
     },
     {
       "command": "node scripts/preflight.mjs",
-      "exitCode": 0
-    },
-    {
-      "command": "node scripts/privacy-scan.mjs",
-      "exitCode": 0
-    },
-    {
-      "command": "node scripts/sync-public.mjs",
       "exitCode": 0
     }
   ],
@@ -107,12 +99,5 @@
     "ws",
     "xml-name-validator",
     "xmlchars"
-  ],
-  "excludedFromPackage": [
-    "docs/installation.json",
-    "docs/plugin-audit.json",
-    "docs/verification.json",
-    "docs/preflight.json",
-    "docs/preflight-baseline.json"
   ]
 }
