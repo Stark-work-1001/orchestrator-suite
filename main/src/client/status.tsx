@@ -35,31 +35,32 @@ export function ProgressStatus({ sessionId, t }: ProgressProps): React.ReactNode
   useEffect(() => {
     if (!opened) return;
     const click = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpened(false); };
-    const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); setOpened(false); trigger.current?.focus(); } };
+    const key = (event: KeyboardEvent) => { if (event.key === 'Escape') { setOpened(false); trigger.current?.focus(); } };
     document.addEventListener('pointerdown', click); document.addEventListener('keydown', key);
     return () => { document.removeEventListener('pointerdown', click); document.removeEventListener('keydown', key); };
   }, [opened]);
+  const dispatch = data?.preset === 'dispatch-orchestrator';
   const task = data?.sessionId === sessionId ? data.task : null, progress = task?.progress;
   const status = progress?.steps.find(s => s.id === progress.current)?.status ?? 'pending';
   const gaps = progress?.steps.filter(s => s.status === 'degraded' || s.status === 'failed').length ?? 0;
   const assessments = task ? assessmentChecklist(task) : [];
   const evidenceCount = assessments.filter(a => a.assessed).length;
-  const label = error ? t('progress.staleShort') : progress ? `${t(`workflow.phase.${phaseOf(progress.current)}`)} · ${t(`stage.${progress.current}`)} · ${t(`progress.status.${status}`)}` : t('progress.title');
+  const label = !dispatch && data ? (error ? t('progress.staleShort') : task?.layerSummary ? t('layers.completed') : t('layers.pending')) : error ? t('progress.staleShort') : progress ? `${t(`workflow.phase.${phaseOf(progress.current)}`)} · ${t(`stage.${progress.current}`)} · ${t(`progress.status.${status}`)}` : t('progress.title');
   return <div className="os-status os-themed" ref={root}>
     <button ref={trigger} className="os-status-trigger" aria-label={label} title={label} aria-expanded={opened} aria-haspopup="dialog" onClick={() => setOpened(value => !value)}>
-      <span className={`os-status-light os-status-${error ? 'degraded' : status}`} aria-hidden="true" /><span>{label}</span>
-      {progress && <span className="os-status-position" title={t('progress.stagePosition')} aria-label={t('progress.stagePosition')}>{PHASES.indexOf(phaseOf(progress.current)) + 1}/{PHASES.length}</span>}
-      <span className="os-status-dots" aria-hidden="true">{progress && PHASES.map(phase => <i key={phase} className={`os-status-${phase === phaseOf(progress.current) ? status : PHASE_STAGES[phase].every(id => assessments.some(a => a.stage === id && a.assessed)) ? 'done' : 'pending'}`} />)}</span>{gaps > 0 && <span className="os-status-gap" title={t('progress.gaps')}>! {gaps}</span>}
+      <span className={`os-status-light os-status-${error ? 'degraded' : status}`} aria-hidden="true" /><span className="os-status-label">{dispatch && progress && !error ? `${t(`workflow.phase.${phaseOf(progress.current)}`)} · ${t(`stage.${progress.current}`)}` : label}</span>
+      {dispatch && progress && <span className="os-status-position" title={t('progress.stagePosition')} aria-label={t('progress.stagePosition')}>{PHASES.indexOf(phaseOf(progress.current)) + 1}/{PHASES.length}</span>}
+      <span className="os-status-dots" aria-hidden="true">{dispatch && progress && PHASES.map(phase => <i key={phase} className={`os-status-${phase === phaseOf(progress.current) ? status : PHASE_STAGES[phase].every(id => assessments.some(a => a.stage === id && a.assessed)) ? 'done' : 'pending'}`} />)}</span>{dispatch && gaps > 0 && <span className="os-status-gap" title={t('progress.gaps')}>! {gaps}</span>}
     </button>
     {opened && <section className="os-status-popover" role="dialog" aria-label={t('progress.title')}>
       <header><strong>{t('progress.title')}</strong><button aria-label={t('progress.close')} onClick={() => { setOpened(false); trigger.current?.focus(); }}>×</button></header>
       {error && <div className="os-warning" role="alert">{error}<p>{t('progress.stale')}</p></div>}
       {!task ? <p>{t('progress.noTask')}</p> : <>
         <p className="os-runtime-version">{t('workflow.runtimeVersion')} {data?.version ?? t('workflow.runtimeUnknown')}{data?.version !== VERSION && <strong> · {t('workflow.runtimeMismatch')}</strong>}</p>
-        <p className="os-caption">{data?.preset} · {t('turn')} {task.turn} · {t('progress.evidenceCount')} {evidenceCount}/{STAGES.length}</p>
+        {dispatch ? <><p className="os-caption">{data?.preset} · {t('turn')} {task.turn} · {t('progress.evidenceCount')} {evidenceCount}/{STAGES.length}</p>
         <div className="os-status-summary" role="status"><strong>{t(`stage.${progress!.current}`)}</strong><span>{t(`progress.status.${status}`)}</span>{gaps > 0 && <p>{t('progress.gaps')} · {gaps} · {t('progress.canContinue')}</p>}</div>
         <TaskStages key={task.taskId ?? `${task.sessionId}:${task.prompt}`} task={task} t={t} />
-        <p className="os-caption">{t('progress.evidenceHint')}</p><details className="os-status-info"><summary>{t('progress.readingGuide')}</summary><p className="os-caption">{t('judgeBody')}</p></details>{progress?.updatedAt && <p className="os-caption">{t('progress.autoRefresh')} · <time dateTime={progress.updatedAt}>{new Date(progress.updatedAt).toLocaleTimeString()}</time></p>}
+        <p className="os-caption">{t('progress.evidenceHint')}</p><details className="os-status-info"><summary>{t('progress.readingGuide')}</summary><p className="os-caption">{t('judgeBody')}</p></details></> : <div className="os-layer-result"><strong>{task.layerSummary ? t('layers.completed') : t('layers.pending')}</strong><p>{task.layerSummary || t('layers.hint')}</p></div>}{dispatch && progress?.updatedAt && <p className="os-caption">{t('progress.autoRefresh')} · <time dateTime={progress.updatedAt}>{new Date(progress.updatedAt).toLocaleTimeString()}</time></p>}
       </>}
     </section>}
   </div>;

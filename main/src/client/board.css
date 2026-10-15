@@ -27,3 +27,16 @@
 
 .os-phase-assessments{margin-left:auto;font-size:10px;color:var(--os-muted)}.os-assessment-pending{color:var(--os-danger);font-size:11px}.os-assessment-complete{color:var(--os-accent);font-size:11px}.os-todo-assessments article,.os-judge-attempt{padding:9px;border:1px solid var(--os-line);border-radius:7px;margin:8px 0}.os-todo-assessments pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.7 system-ui,sans-serif}.os-todo-assessments small,.os-judge-attempt small{color:var(--os-muted);font-size:10px}.os-status-assessed{background:var(--os-accent);border-color:var(--os-accent)}.os-runtime-version{font-size:10px;color:var(--os-muted);overflow-wrap:anywhere}.os-runtime-version strong{color:var(--os-danger);font-weight:500}.os-status *{box-sizing:border-box}
 .os-verifier-panel{border:1px solid var(--os-line);border-radius:12px;padding:16px;margin:12px 0}.os-verifier-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px}.os-verifier-controls label{display:flex;flex-direction:column;gap:6px}.os-verifier-controls select,.os-verifier-controls button{font:inherit;color:inherit;background:var(--os-bg);border:1px solid var(--os-line);padding:7px;border-radius:6px}.os-verifier-evidence{border-top:1px solid var(--os-line);padding-top:10px;margin-top:10px}.os-execution-insights article{margin:10px 0}.os-delivery-conclusion{padding:12px;border-left:3px solid var(--os-accent)}
+
+/* Slot-owned styles, with explicit control defaults resistant to host resets. */
+.os-surface{display:contents;font-family:var(--dsw-font-family,system-ui,sans-serif)}
+.os-surface .os-entry,.os-surface .os-status-trigger{appearance:none;box-sizing:border-box;border:0;background:transparent;color:inherit;font:12px/1.5 var(--dsw-font-family,system-ui,sans-serif);cursor:pointer;box-shadow:none;text-transform:none;letter-spacing:normal}
+.os-surface .os-entry{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;padding:8px 10px;border-radius:6px}
+.os-entry svg{flex:0 0 18px}.os-entry span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.os-surface .os-status{flex:0 1 200px;min-width:0;max-width:200px}
+.os-surface .os-status-trigger{display:flex;gap:5px;align-items:center;min-width:0;max-width:200px;height:28px;padding:3px 6px;border-radius:6px;white-space:nowrap}
+.os-status-label{min-width:0;overflow:hidden;text-overflow:ellipsis}.os-status-position,.os-status-light,.os-status-dots,.os-status-gap{flex-shrink:0}
+.os-surface .os-status-popover{position:fixed;top:60px;right:12px;z-index:10000;width:min(420px,calc(100vw - 24px));max-height:calc(100vh - 84px);overflow:auto;overscroll-behavior:contain}
+@media(max-width:800px){.os-surface .os-status,.os-surface .os-status-trigger{max-width:150px}.os-status-dots{display:none}}
+@media(max-width:480px){.os-surface .os-status,.os-surface .os-status-trigger{max-width:112px}}
+.os-surface .os-entry{width:auto;max-width:100%;flex:0 1 auto}

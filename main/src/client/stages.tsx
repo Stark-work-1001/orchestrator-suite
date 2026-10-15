@@ -29,7 +29,7 @@ export function TaskStages({ task, t }: { task: StageTask; t: Translate }) {
   const download = () => {
     const blob = new Blob([JSON.stringify(deliveryBundle(task), null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob), link = document.createElement('a');
-    link.href = url; link.download = 'orchestrator-suite-3.0.2-delivery.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    link.href = url; link.download = 'orchestrator-suite-3.0.3-delivery.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   return <><p className="os-caption">{t('workflow.advisory')} · {t(`workflow.${task.guidance ?? 'light'}`)}{task.triggerReason && <><br />{task.triggerReason}</>}</p>
     <ol className="os-stage-list" aria-label={t('progress.stages')}>{PHASES.map((phase, index) => <li key={phase}><details className={currentPhase === phase ? 'os-phase os-phase-current' : 'os-phase'} data-phase={phase} open={!!phaseExpanded[phase]} onToggle={event => { const open = event.currentTarget.open; setPhaseExpanded(previous => previous[phase] === open ? previous : { ...previous, [phase]: open }); }}>
