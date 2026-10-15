@@ -18,7 +18,7 @@ test('built client registers only compact header and board; close paths work', a
   for (const key of ['window', 'document', 'navigator', 'HTMLElement', 'Node']) Object.defineProperty(globalThis, key, { value: dom.window[key], configurable: true });
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   const stages = ['input', 'triage', 'compare', 'verify', 'assemble', 'supplement', 'todo', 'execute', 'trace', 'accept', 'construction'];
-  globalThis.fetch = async () => ({ ok: true, json: async () => ({ ok: true, sessionId: 'session', preset: 'standard', pollMs: 30000, task: { sessionId: 'session', prompt: 'task', progress: { current: 'execute', steps: stages.map(id => ({ id, status: id === 'execute' ? 'active' : 'pending' })) } } }) });
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ ok: true, sessionId: 'session', preset: 'dispatch-orchestrator', pollMs: 30000, task: { sessionId: 'session', prompt: 'task', progress: { current: 'execute', steps: stages.map(id => ({ id, status: id === 'execute' ? 'active' : 'pending' })) } } }) });
   let client;
   dom.window.__ModuleLoader__ = { load: d => { client = d.factory(requireToolchain); } };
   const source = await fs.readFile(path.join(root, 'lib/client.js'), 'utf8');
@@ -40,7 +40,7 @@ test('built client registers only compact header and board; close paths work', a
     await act(async () => document.body.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }))); assert.equal(document.querySelector('[role="dialog"]'), null);
     await act(async () => button.click());
     await act(async () => document.querySelector('.os-status-popover header button').click()); assert.equal(document.querySelector('[role="dialog"]'), null);
-    assert.ok(document.getElementById('orchestrator-suite:style').textContent.includes('--dsw-alias'));
+    assert.ok(document.querySelector('.os-surface style').textContent.includes('--dsw-alias'));
   } finally {
     await act(async () => mount.unmount()); cleanup.forEach(fn => fn()); dom.window.close();
     for (const key of keys) { if (previous[key]) Object.defineProperty(globalThis, key, previous[key]); else delete globalThis[key]; }
@@ -104,6 +104,37 @@ async function withUI(response, run) {
   try { await run({ dom, mount, slots, t }); }
   finally { await act(async () => mount.unmount()); cleanup.forEach(fn => fn()); dom.window.close(); for (const key of keys) { if (previous[key]) Object.defineProperty(globalThis, key, previous[key]); else delete globalThis[key]; } }
 }
+
+test('ordinary preset shows only recorded layer result, even after switching from dispatch', async () => {
+  const steps = ['input','triage','compare','verify','assemble','supplement','todo','execute','trace','accept','construction'].map(id => ({ id, status: 'pending' }));
+  let preset = 'dispatch-orchestrator';
+  const task = { sessionId: 'session', prompt: 'Task', layerSummary: 'Tools and teams remain available; identity unknown.', progress: { current: 'triage', steps } };
+  await withUI(() => ({ ok: true, sessionId: 'session', preset, pollMs: 30000, task }), async ({ dom, mount, slots, t }) => {
+    const slot = slots.find(row => row.descriptor.name === 'conversation.session.header.actions');
+    await act(async () => mount.render(slot.render({ sessionId: 'session', t })));
+    await act(async () => document.querySelector('.os-status-trigger').click());
+    assert.equal(document.querySelectorAll('[data-stage]').length, 11);
+    preset = 'standard';
+    await act(async () => document.dispatchEvent(new dom.window.Event('visibilitychange')));
+    assert.equal(document.querySelector('.os-status-trigger').textContent, '已经编排');
+    assert.equal(document.querySelectorAll('[data-stage]').length, 0);
+    assert.equal(document.querySelectorAll('.os-status-position').length, 0);
+    assert.match(document.querySelector('.os-layer-result').textContent, /Tools and teams/);
+  });
+});
+
+test('disposing one slot leaves another slot’s stylesheet intact across repeated mounts', async () => {
+  await withUI(() => ({}), async ({ mount, slots }) => {
+    const entry = slots.find(row => row.descriptor.name === 'sidebar.footer.action');
+    for (let count = 0; count < 12; count++) {
+      await act(async () => mount.render(React.createElement(React.Fragment, null,
+        React.createElement('div', { key: 'stable', id: 'stable' }, entry.render({ wide: true })),
+        count % 2 ? null : React.createElement('div', { key: 'transient' }, entry.render({ wide: false })))));
+      assert.match(document.querySelector('#stable style').textContent, /appearance:none/);
+      assert.equal(document.querySelector('head #orchestrator-suite\\:style'), null);
+    }
+  });
+});
 test('three phases with unified rows retain lamps, state text, matching evidence and expansion during refresh', async () => {
   const stages = ['input', 'triage', 'compare', 'verify', 'assemble', 'supplement', 'todo', 'execute', 'trace', 'accept', 'construction'];
   let updated = false;
@@ -137,7 +168,7 @@ test('board asset counts describe visible standalone rows and scope changes sele
   const row = (id, kind, ownerId) => ({ id, name: id, kind, ownerId, description: '', status: 'available' });
   const steps = ['input', 'triage', 'compare', 'verify', 'assemble', 'supplement', 'todo', 'execute', 'trace', 'accept', 'construction'].map(id => ({ id, status: 'pending' }));
   const tasks = ['A', 'B'].map(id => ({ sessionId: id, turn: 1, prompt: `${id} prompt`, triage: `${id} triage`, comparison: '', review: '', conclusion: '', progress: { current: 'triage', steps } }));
-  await withUI((_url, options) => ({ ok: true, catalog: { generatedAt: new Date().toISOString(), skills: [row('owned', 'skill', 'plugin'), row('standalone', 'skill')], plugins: [{ ...row('plugin', 'plugin'), children: [row('owned', 'skill', 'plugin')] }], mcp: [], environments: [], tools: [], memory: [], memoryRoots: [], warnings: [], identity: [], organization: [], verification: [] }, tasks, sessions: tasks.map(task => ({ id: task.sessionId, preset: 'standard' })) }), async ({ dom, mount, slots }) => {
+  await withUI((_url, options) => ({ ok: true, catalog: { generatedAt: new Date().toISOString(), skills: [row('owned', 'skill', 'plugin'), row('standalone', 'skill')], plugins: [{ ...row('plugin', 'plugin'), children: [row('owned', 'skill', 'plugin')] }], mcp: [], environments: [], tools: [], memory: [], memoryRoots: [], warnings: [], identity: [], organization: [], verification: [] }, tasks, sessions: tasks.map(task => ({ id: task.sessionId, preset: 'dispatch-orchestrator' })) }), async ({ dom, mount, slots }) => {
     await act(async () => mount.render(React.createElement(React.Fragment, null, slots.find(slot => slot.descriptor.name === 'sidebar.footer.action').render({ wide: true }), slots.find(slot => slot.descriptor.name === 'shell.overlay').render())));
     await act(async () => document.querySelector('.os-entry').click());
     const nav = [...document.querySelectorAll('.os-nav button')];
@@ -156,7 +187,7 @@ test('board asset counts describe visible standalone rows and scope changes sele
 
 test('a superseded board response cannot overwrite the selected session snapshot', async () => {
   const steps = ['input', 'triage', 'compare', 'verify', 'assemble', 'supplement', 'todo', 'execute', 'trace', 'accept', 'construction'].map(id => ({ id, status: 'pending' }));
-  const payload = id => ({ ok: true, catalog: { generatedAt: new Date().toISOString(), skills: [], plugins: [], mcp: [], environments: [], tools: [], memory: [], memoryRoots: [], warnings: [] }, tasks: id ? [{ sessionId: id, turn: 1, prompt: `${id} prompt`, triage: `${id} triage`, comparison: '', review: '', conclusion: '', progress: { current: 'triage', steps } }] : [], sessions: [{ id: 'A', preset: 'standard' }, { id: 'B', preset: 'standard' }] });
+  const payload = id => ({ ok: true, catalog: { generatedAt: new Date().toISOString(), skills: [], plugins: [], mcp: [], environments: [], tools: [], memory: [], memoryRoots: [], warnings: [] }, tasks: id ? [{ sessionId: id, turn: 1, prompt: `${id} prompt`, triage: `${id} triage`, comparison: '', review: '', conclusion: '', progress: { current: 'triage', steps } }] : [], sessions: [{ id: 'A', preset: 'dispatch-orchestrator' }, { id: 'B', preset: 'dispatch-orchestrator' }] });
   let releaseOld;
   await withUI((_url, options) => {
     const id = JSON.parse(options.body).sessionId;
@@ -193,7 +224,7 @@ test('three-phase status shows identities, requirements, todo history and export
     window.HTMLAnchorElement.prototype.click = function () { downloaded = this.download; };
     try {
       await act(async () => document.querySelector('.os-export').click());
-      assert.equal(downloaded, 'orchestrator-suite-3.0.2-delivery.json');
+      assert.equal(downloaded, 'orchestrator-suite-3.0.3-delivery.json');
       const json = JSON.parse(await blob.text()); assert.equal(json.originalUserPrompt, task.prompt); assert.equal(json.processUserPrompts[0].prompt, task.supplements[0].prompt);
     } finally { URL.createObjectURL = oldCreate; URL.revokeObjectURL = oldRevoke; window.HTMLAnchorElement.prototype.click = oldClick; }
   });
@@ -202,7 +233,7 @@ test('three-phase status shows identities, requirements, todo history and export
 test('todo assessment panel distinguishes unassessed emptiness, covered no-change and invocation failure', async () => {
   const stages = ['input','triage','compare','verify','assemble','supplement','todo','execute','trace','accept','construction'];
   const task = { sessionId:'session',taskId:'assess-fixture',turn:1,revision:1,prompt:'Prompt',triage:'',comparison:'',review:'',conclusion:'',reports:[],supplements:[],todos:[],todoChanges:[],todoAssessments:[],planVersions:[],identities:[],judgeAttempts:[],progress:{current:'todo',steps:stages.map(id=>({id,status:id==='todo'?'active':'pending'}))} };
-  await withUI(()=>({ok:true,version:'3.0.2',sessionId:'session',preset:'dispatch-orchestrator',pollMs:30000,task}),async ({dom,mount,slots,t})=>{
+  await withUI(()=>({ok:true,version:'3.0.3',sessionId:'session',preset:'dispatch-orchestrator',pollMs:30000,task}),async ({dom,mount,slots,t})=>{
     await act(async()=>mount.render(slots.find(s=>s.descriptor.name==='conversation.session.header.actions').render({sessionId:'session',t})));
     await act(async()=>document.querySelector('.os-status-trigger').click());
     assert.match(document.querySelector('[data-stage="todo"] .os-stage-state').textContent,/尚未完整评估/);

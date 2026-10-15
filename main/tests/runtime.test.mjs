@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createRuntime, mount } from '../lib/host-3.0.2.js';
+import { createRuntime, mount } from '../lib/host-3.0.3.js';
 import { publicFiles, scanFiles } from '../scripts/privacy-scan.mjs';
 
 const config = JSON.parse(await fs.readFile(new URL('../suite.config.json', import.meta.url), 'utf8'));
@@ -35,19 +35,40 @@ async function completePlanning(s, conclusion = 'Plan') {
   assert.equal(result.status, 'ready'); return result;
 }
 async function understandInput(s) { await s.call('dispatch_report', { stage: 'input', understanding: '理解用户原始目标及约束', source: '测试输入原文' }); }
-test('ordinary mode can submit triage and layers and observe actual execution', async () => {
-  const s = setup({ preset: 'standard' });
-  s.runtime.observeStep(s.agent);
-  assert.equal(s.runtime.states.get(s.agent).progress.current, 'input');
-  await s.call('dispatch_plan', { inputUnderstanding: '理解本次测试任务的目标与约束', triage: 'L1 明确范围' });
-  await s.call('relic_prepare');
-  assert.equal((await s.call('dispatch_context', { comparison: '工具可用，其他层未知', conclusion: '继续实施' })).status, 'review-required');
-  await s.call('dispatch_commit', { noTodoReason: '旧回归夹具：这里只测试计划记录，待办在后续步骤显式提交', conclusion: '继续实施', reviewUnderstanding: '验证器不可用，按公开能力执行并保留缺口' });
-  s.runtime.observeStatus({ agent: s.agent, status: 'idle' });
-  const state = s.runtime.states.get(s.agent);
-  assert.equal(state.progress.steps.find(s => s.id === 'execute').status, 'ended');
-  assert.equal(state.progress.steps.find(s => s.id === 'accept').status, 'pending');
+
+test('live preset switch removes workflow guidance and preserves foreign middleware result', async () => {
+  const s = setup(); let preset = 'dispatch-orchestrator';
+  s.ctx.agentPresets.composedPreset = () => preset;
+  mount(s.ctx, s.settings);
+  s.events.get('agent/inbox/claimed')({ agent: s.agent, message: { source: { kind: 'user' }, content: [{ type: 'text', text: 'Task' }] }, turn: 1 });
+  const assemble = () => s.events.get('system-prompt/assemble')({ sections: [] }, { agent: s.agent }, async () => ({ sections: [{ name: 'team-owned', text: 'Keep team tools available' }] }));
+  assert.ok((await assemble()).sections.some(row => row.name === 'orchestrator-suite:task'));
+  preset = 'some-other-preset';
+  const other = await assemble();
+  assert.deepEqual(other.sections.map(row => row.name), ['team-owned', 'orchestrator-suite:layers']);
+  assert.equal(s.sections[0].text({ agent: s.agent }), '');
+  const result = { kind: 'continue', teamOwnedData: true }; let calls = 0;
+  assert.equal(await s.events.get('agent/pre-step')({ agent: s.agent }, async () => { calls++; return result; }), result);
+  assert.equal(calls, 1);
+  assert.equal((await s.registered.find(t => t.name === 'dispatch_accept').execute({}, s.exec)).status, 'advisory-only');
+  const patch = await fs.readFile(new URL('../cordis.patch.yml', import.meta.url), 'utf8');
+  assert.doesNotMatch(patch, /planMode:|workflowEngine:|toolFilter:|tool-subagent|tool-workflow|tool-plugin-manager/);
 });
+test('ordinary presets keep one layer result and never enter dispatch workflow', async () => {
+  const s = setup({ preset: 'standard' });
+  const before = structuredClone(s.runtime.states.get(s.agent).progress);
+  s.runtime.observeStep(s.agent);
+  assert.deepEqual(s.runtime.states.get(s.agent).progress, before);
+  assert.equal((await s.call('dispatch_plan', { triage: 'irrelevant' })).status, 'advisory-only');
+  assert.equal((await s.call('relic_result', { understanding: 'premature' })).status, 'needs-catalog');
+  await s.call('relic_prepare');
+  assert.equal((await s.call('relic_result', { understanding: '工具与团队按当前预设选用，验证和身份未知' })).status, 'orchestrated');
+  s.capture('New supplement', 2);
+  assert.equal(s.runtime.states.get(s.agent).supplements.length, 0);
+  assert.equal((await s.call('relic_result', { understanding: 'duplicate' })).status, 'already-recorded');
+  assert.equal(s.runtime.states.get(s.agent).todos.length, 0);
+});
+
 test('missing judge is degraded and commit continues without fabricated success', async () => {
   const s = setup(); await understandInput(s);
   const result = await s.call('dispatch_review', { triage: 'L1', comparison: '发现失败；使用可用工具' });
@@ -428,7 +449,7 @@ test('short input assembly reads the registered catalog and injects missing step
   const result = await s.events.get('system-prompt/assemble')({}, { agent: s.agent }, async () => ({ sections: [] }));
   assert.equal(reads, 1); assert.match(result.sections[0].text, /short\/light/); assert.match(result.sections[0].text, /nextAssessment/); assert.match(result.sections[0].text, /智能体开展任务的过程/);
   const route = s.routes.find(r => r.path.endsWith('/progress')), payload = await (await route.fetch(new Request('http://test/progress', { method: 'POST', body: '{"sessionId":"main-1"}' }))).json();
-  assert.equal(payload.version, '3.0.2'); assert.equal(payload.task.discoveryAttempted, true); assert.equal(payload.task.reports.length, 0); assert.equal(payload.assessments[0].assessed, false);
+  assert.equal(payload.version, '3.0.3'); assert.equal(payload.task.discoveryAttempted, true); assert.equal(payload.task.reports.length, 0); assert.equal(payload.assessments[0].assessed, false);
 });
 
 test('understanding from an older evaluation cannot substitute for reading the current result', async () => {
@@ -498,7 +519,7 @@ test('a validator that becomes registered after an unavailable attempt is actual
   await s.call('dispatch_delivery',args);assert.equal(calls,1);
 });
 
-// 3.0.2 integration regressions: all judge responses below are explicit fixtures.
+// 3.0.3 integration regressions: all judge responses below are explicit fixtures.
 test('planning routes real candidates and one-based checkpoints, retaining actual judge models', async () => {
   const calls=[];const s=setup({verifier:args=>{calls.push(args);return {isError:false,content:[],value:{provider:'fixture-provider',model:'fixture-judge',scores:[.4,.6],judges:[{model:'fixture-secondary'}]}};}});
   await s.call('dispatch_review',{triage:'Task triage',comparison:'Actual layers',candidates:['Plan A','Plan B','Plan C']});
