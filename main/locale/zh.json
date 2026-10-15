@@ -163,7 +163,7 @@
   "triageConclusionBody": "保留 L0–L2 参考，也可直接说明任务依赖、独立子任务、主子职责与验收条件。不要把级别当必须组队的门槛。",
   "selectScopeForReport": "选择会话查看范围，查看该任务实际提交的分诊；尚未提交就保持未知。",
   "dynamicTeamTitle": "主模型与子模型的动态联系",
-  "dynamicTeamBody": "主模型保留任务所有权，明确目标、范围、依赖与回报要求；子模型自主实现、自检并汇报。根据进展澄清、调整或取消任务，协调重叠写入，主模型复审整合。只有用户授权并有收益才委派，插件存在不代表团队已启动。",
+  "dynamicTeamBody": "主模型保留任务所有权，明确目标、范围、依赖与回报要求；子模型自主实现、自检并汇报。根据进展澄清、调整或取消任务，协调重叠写入，主模型复审整合。套件不额外审批或限制委派；按宿主与团队工具的规则使用，插件存在不代表团队已启动。",
   "teamAssign": "明确任务与边界",
   "teamReport": "回报进度与证据",
   "teamAdjust": "动态调整依赖",
@@ -272,5 +272,8 @@
   "workflow.construction.suggestions": "改动建议",
   "workflow.origin.plan": "综合装配规划",
   "workflow.origin.user-supplement": "用户补充",
-  "workflow.origin.model-execution": "执行认识"
+  "workflow.origin.model-execution": "执行认识",
+  "layers.completed": "已经编排",
+  "layers.pending": "多层对照",
+  "layers.hint": "等待对话模型读取工具、验证、团队与身份层并返回理解；不会启动三阶段或限制其他插件。"
 }

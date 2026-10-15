@@ -272,5 +272,8 @@
   "workflow.construction.suggestions": "Improvement suggestions",
   "workflow.origin.plan": "Integrated plan",
   "workflow.origin.user-supplement": "User supplement",
-  "workflow.origin.model-execution": "Execution insight"
+  "workflow.origin.model-execution": "Execution insight",
+  "layers.completed": "Orchestrated",
+  "layers.pending": "Layer comparison",
+  "layers.hint": "Waiting for the model’s four-layer understanding. No three-phase workflow or restrictions on other plugins."
 }
