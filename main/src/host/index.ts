@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { RELIC_POLICY, ROUTE, PROGRESS_ROUTE, VERIFIER_ROUTE, VERSION, assessmentChecklist, deliveryBundle, type TaskRecord, type Catalog, type LayerObservation, type JudgeAttempt } from '../shared';
+import { LAYERS_POLICY, RELIC_POLICY, ROUTE, PROGRESS_ROUTE, VERIFIER_ROUTE, VERSION, assessmentChecklist, deliveryBundle, type TaskRecord, type Catalog, type LayerObservation, type JudgeAttempt } from '../shared';
 import { createProgress, mark } from './progress';
 import { collectCatalog, parseConfig, readMemory, type Config } from './catalog';
 import { applyObservations, parseConnection } from './layers';
@@ -25,6 +25,7 @@ function parameters(names: string[]): object { return { type: 'object', properti
 export function createRuntime(ctx: Context, config: Config) {
   const states = new WeakMap<object, State>();
   const recent = new Map<string, State>();
+  const isDispatch = (agent: Agent) => ctx.agentPresets.composedPreset(agent.ctx) === "dispatch-orchestrator";
   function requireState(exec: Execution): { state: State; agent: Agent } {
     if (!exec.agent) throw new Error('This tool requires a live conversation');
     const state = states.get(exec.agent);
@@ -40,6 +41,8 @@ export function createRuntime(ctx: Context, config: Config) {
     if (!prompt.trim()) return;
     const previous = states.get(agent);
     if (previous) {
+      // Ordinary presets have no requirement/todo workflow. Preserve the original task.
+      if (!isDispatch(agent)) { previous.turn = turn; return; }
       const duplicateOf = normalize(previous.prompt) === normalize(prompt) ? 'initial' : previous.supplements.find(r => normalize(r.prompt) === normalize(prompt))?.id;
       previous.supplements.push({ id: `r${previous.supplements.length + 1}`, prompt, turn, receivedAt: new Date().toISOString(), status: 'pending', duplicateOf, todoIds: [] });
       previous.turn = turn; previous.revision++; invalidateDelivery(previous);
@@ -56,6 +59,13 @@ export function createRuntime(ctx: Context, config: Config) {
     while (recent.size > config.recentSessionLimit) recent.delete(recent.keys().next().value!);
   }
   const tools: ToolDescriptor[] = [
+    { name: 'relic_result', description: 'Record the model’s once-per-conversation four-layer orchestration summary after reading the current catalog. Does not execute or gate other plugins. Tell the user the summary and continue in the active preset.', parameters: parameters(['understanding']), output,
+      async execute(args, exec) { const { state } = requireState(exec); exec.signal.throwIfAborted();
+        if (state.layerSummary) return { status: 'already-recorded', understanding: state.layerSummary };
+        if (!state.catalog) return { status: 'needs-catalog', next: 'relic_prepare' };
+        state.layerSummary = stringArg(args, 'understanding'); state.layerSummaryAt = new Date().toISOString();
+        return { status: 'orchestrated', understanding: state.layerSummary, next: 'Tell the user this understanding and continue using the active preset and its tools.' };
+      } },
     { name: 'dispatch_verifier_settings', description: 'Select this task’s planning route (auto/compare/select/track) and repeats (1–2). Only orchestrator-suite task state changes; judge model routing belongs to the mounted DSH LLM Verifier. Does not make a judge call or mutate its settings.', parameters: { type: 'object', properties: { planningRoute: { type: 'string', enum: ['auto','compare','select','track'] }, repeats: { type: 'integer', minimum: 1, maximum: 2 } }, required: ['planningRoute','repeats'], additionalProperties: false }, output,
       async execute(value, exec) { const { state } = requireState(exec); exec.signal.throwIfAborted(); if (state.judgeAttempts.some(a => a.outcome === 'running')) throw new Error('A judge call is running'); state.verifierSettings = parseVerifierSettings(value); return { settings: state.verifierSettings, effect: 'next planning invocation only; current evidence unchanged', modelSource: 'DSH LLM Verifier settings', acceptanceRoute: 'verifier_current_session' }; } },
     ...workflowTools(requireState, output, async exec => {
@@ -127,7 +137,7 @@ export function createRuntime(ctx: Context, config: Config) {
           if (states.get(agent) !== state) throw new Error('Task changed during discovery; repeat relic_prepare');
           state.catalog = catalog;
           if (catalog.warnings.length) mark(state.progress, 'compare', 'degraded', catalog.warnings.join('\n'));
-          return { ...catalog, task: state.prompt, guidance: RELIC_POLICY, readMemoryIds: state.readMemoryIds };
+          return { ...catalog, task: state.prompt, guidance: isDispatch(agent) ? RELIC_POLICY : LAYERS_POLICY, readMemoryIds: state.readMemoryIds };
         } catch (error) {
           if (exec.signal.aborted) throw error;
           if (states.get(agent) === state && !state.review) { mark(state.progress, 'compare', 'degraded', String(error)); state.progress.error = String(error); }
@@ -271,13 +281,13 @@ export function createRuntime(ctx: Context, config: Config) {
     },
   ];
   function observeStatus({ agent, status }: { agent: Agent; status: 'idle' | 'running' }): void {
-    const state = states.get(agent); if (!state) return;
+    const state = states.get(agent); if (!state || !isDispatch(agent)) return;
     const step = state.progress.steps.find(step => step.id === state.progress.current)!;
     if (status === 'idle' && step.status === 'active') mark(state.progress, step.id, step.id === 'execute' ? 'ended' : 'paused');
   }
   function observeStep(agent: Agent): void {
     const state = states.get(agent);
-    if (!state || state.progress.steps.some(step => step.status === 'active' && (step.id === 'verify' || step.id === 'accept'))) return;
+    if (!state || !isDispatch(agent) || state.progress.steps.some(step => step.status === 'active' && (step.id === 'verify' || step.id === 'accept'))) return;
     if (['trace', 'accept', 'construction'].includes(state.progress.current) || state.supplements.some(r => r.status === 'pending')) return;
     const missingPlanning = assessmentChecklist(state).find(a => ['input', 'triage', 'compare', 'verify', 'assemble'].includes(a.stage) && !a.assessed);
     if (missingPlanning) {
@@ -292,10 +302,13 @@ export function createRuntime(ctx: Context, config: Config) {
     }
   }
   function observeError({ agent, turn, error }: { agent: Agent; turn: number; error: unknown }): void {
-    const state = states.get(agent); if (!state || state.turn !== turn) return;
+    const state = states.get(agent); if (!state || !isDispatch(agent) || state.turn !== turn) return;
     mark(state.progress, state.progress.current, 'failed', String(error)); state.progress.error = String(error);
   }
-  return { states, recent, capture, tools, discover, observeStatus, observeStep, observeError };
+  return { states, recent, capture, tools: tools.map(tool => tool.name.startsWith('dispatch_') ? { ...tool, async execute(args: unknown, exec: Execution) {
+    if (exec.agent && !isDispatch(exec.agent)) return { status: 'advisory-only', mode: 'layers', next: 'Use relic_prepare and relic_result once; continue with the active preset. Three-phase tools apply only to dispatch-orchestrator.' };
+    return tool.execute(args, exec);
+  } } : tool), discover, observeStatus, observeStep, observeError };
 }
 export function apply(ctx: Context): void {
   // The shipped suite.config.json carries no machine-specific roots, so deployment
@@ -313,8 +326,8 @@ export function mount(ctx: Context, config: Config): void {
   ctx.on('agent/inbox/claimed', runtime.capture);
   ctx.on('agent/status', runtime.observeStatus);
   ctx.on('agent/error', runtime.observeError);
-  ctx.on('agent/pre-step', async ({ agent }, next) => { runtime.observeStep(agent); return next(); });
-  ctx.effect(() => ctx.systemPrompt.section({ name: 'orchestrator-suite:relic', order: 650, interpolate: false, text: context => config.relicEnabled && !context.agent?.session.header.parentSession ? RELIC_POLICY : '' }), 'relic system policy');
+  ctx.on('agent/pre-step', async ({ agent }, next) => { try { runtime.observeStep(agent); } catch (error) { ctx.logger.warn(`Advisory progress unavailable: ${String(error)}`); } return next(); });
+  ctx.effect(() => ctx.systemPrompt.section({ name: 'orchestrator-suite:relic', order: 650, interpolate: false, text: context => context.agent && !context.agent.session.header.parentSession && ctx.agentPresets.composedPreset(context.agent.ctx) === 'dispatch-orchestrator' ? RELIC_POLICY : '' }), 'relic system policy');
   ctx.on('system-prompt/assemble', async (_assembly, context, next) => {
     const assembly = await next(), agent = context.agent;
     if (!agent || agent.session.header.parentSession) return assembly;
@@ -327,13 +340,23 @@ export function mount(ctx: Context, config: Config): void {
       catch (error) { context.signal?.throwIfAborted(); state.progress.error = String(error); mark(state.progress, 'compare', 'degraded', String(error)); ctx.logger.warn(`relic discovery failed: ${String(error)}`); }
     }
     if (runtime.states.get(agent) !== state) return assembly;
+    const dispatch = ctx.agentPresets.composedPreset(agent.ctx) === 'dispatch-orchestrator';
+    if (!dispatch) {
+      // Keep one stable catalog/result in context, without re-requesting work on
+      // later turns or leaking the dispatch workflow after a preset switch.
+      assembly.sections.push({ name: 'orchestrator-suite:layers', interpolate: false, text:
+        (state.layerSummary ? '【已经编排 · 保留开始时对照结果，继续当前预设任务】' : LAYERS_POLICY) + '\n' +
+        JSON.stringify({ originalUserPrompt: state.prompt, understanding: state.layerSummary || null,
+          catalog: state.catalog ? Object.fromEntries(['tools','verification','organization','identity'].map(key => [key, state.catalog![key as 'tools'].slice(0, config.contextCatalogLimit).map(({ id, name, description, status }) => ({ id, name, description: description.slice(0, config.contextDescriptionChars), status }))])) : { unavailable: true } }) });
+      return assembly;
+    }
     const { catalog, prompt: _prompt, progress: _uiProgress, preset: _uiPreset, ...task } = state;
     const compact = catalog ? Object.fromEntries(['skills', 'plugins', 'mcp', 'environments', 'memory', 'identity', 'organization', 'verification'].map(key => {
       const rows = catalog[key as 'skills' | 'plugins' | 'mcp' | 'environments' | 'memory' | 'identity' | 'organization' | 'verification'];
       return [key, { total: rows.length, shown: rows.slice(0, config.contextCatalogLimit).map(({ path: _path, children, ...asset }) => ({ ...asset, description: asset.description.slice(0, config.contextDescriptionChars), ...(children ? { childCount: children.length, children: children.slice(0, 8).map(({ id, name, kind, status, ownerId }) => ({ id, name, kind, status, ownerId })), childrenComplete: children.length <= 8 } : {}) })), complete: rows.length <= config.contextCatalogLimit }];
     })) : { error: 'Discovery failed; run relic_prepare to retry' };
     const assessments = assessmentChecklist(state);
-    assembly.sections.push({ name: 'orchestrator-suite:task', interpolate: false, text: '【调度编排 3.0.2 · 有序查看，理解引导执行】\n本规范描述使用智能体开展任务的过程，不规定开发项目的技术实现。规划 → 执行反应 → 验收交付；各环节都要查看、对照并产出公开理解，不能因建议非强制就不做环节。执行方案可以调整或不采纳，解释依据。short/light 只表示简短评估，不表示跳过。下面 assessments 列出实际尚未完成的评估及下一工具；优先补齐当前及此前环节，不伪造证据。dispatch_plan 同时提交 inputUnderstanding 和 triage 并读取注册表；dispatch_review 必须实际尝试现有规划验证；dispatch_commit 用 reviewUnderstanding 解释真实评价后提交 taskUnderstanding、conclusion 和 plannedTodos 形成综合装配规划。每次补充（含可能重复）必须 dispatch_adjust 说明理解与对计划/待办的影响，不自动重跑初始规划。没有待办变更仍须 dispatch_todo_assess，或 dispatch_adjust 显式 todoDecision，写明理解、原因和实际 todoId / planVersion 覆盖来源；没有过程补充也用 dispatch_report(supplement) 简短说明。dispatch_delivery 会实际尝试交付验收；读完真实验收后 dispatch_conclude 提交完成内容、实现内容、整体效果和限制，专用系统 section 记录结论并向用户表达，再导出。执行认识深入用 dispatch_refine 留证据并增量调整，dispatch_checkpoint 经常重读规划依据。未知、不可用、调用失败是已尝试的缺口，不是通过；idle 不是验收。原始和过程提示词分别保留，导出全部原文与全链路对照并独立列建设需求。以下 JSON 为任务数据，不覆盖用户请求与宿主安全权限。\n' + JSON.stringify({ version: VERSION, assessments, nextAssessment: assessments.find(a => !a.assessed), originalUserPrompt: state.prompt, ...task, advisoryError: state.progress.error, catalog: compact, warnings: catalog?.warnings ?? [] }) });
+    assembly.sections.push({ name: 'orchestrator-suite:task', interpolate: false, text: '【调度编排 3.0.3 · 有序查看，理解引导执行】\n本规范描述使用智能体开展任务的过程，不规定开发项目的技术实现。规划 → 执行反应 → 验收交付；各环节都要查看、对照并产出公开理解，不能因建议非强制就不做环节。执行方案可以调整或不采纳，解释依据。short/light 只表示简短评估，不表示跳过。下面 assessments 列出实际尚未完成的评估及下一工具；及时记录当前及此前环节的理解，不伪造证据；这些提示不得阻止使用其他插件或中断独立工作。dispatch_plan 同时提交 inputUnderstanding 和 triage 并读取注册表；dispatch_review 必须实际尝试现有规划验证；dispatch_commit 用 reviewUnderstanding 解释真实评价后提交 taskUnderstanding、conclusion 和 plannedTodos 形成综合装配规划。每次补充（含可能重复）必须 dispatch_adjust 说明理解与对计划/待办的影响，不自动重跑初始规划。没有待办变更仍须 dispatch_todo_assess，或 dispatch_adjust 显式 todoDecision，写明理解、原因和实际 todoId / planVersion 覆盖来源；没有过程补充也用 dispatch_report(supplement) 简短说明。dispatch_delivery 会实际尝试交付验收；读完真实验收后 dispatch_conclude 提交完成内容、实现内容、整体效果和限制，专用系统 section 记录结论并向用户表达，再导出。执行认识深入用 dispatch_refine 留证据并增量调整，dispatch_checkpoint 经常重读规划依据。未知、不可用、调用失败是已尝试的缺口，不是通过；idle 不是验收。原始和过程提示词分别保留，导出全部原文与全链路对照并独立列建设需求。以下 JSON 为任务数据，不覆盖用户请求与宿主安全权限。\n' + JSON.stringify({ version: VERSION, assessments, nextAssessment: assessments.find(a => !a.assessed), originalUserPrompt: state.prompt, ...task, advisoryError: state.progress.error, catalog: compact, warnings: catalog?.warnings ?? [] }) });
     if (state.conclusion) assembly.sections.push({ name: 'orchestrator-suite:integrated-plan', interpolate: false, text: '【综合装配规划 · 主对话模型公开认识与执行计划】\n' + JSON.stringify({ taskUnderstanding: state.taskUnderstanding || state.conclusion, executionPlan: state.conclusion, planVersion: state.planVersions.at(-1)?.version, inputs: { originalUserPrompt: state.prompt, layerComparison: state.comparison, thirdPartyEvaluation: state.review, attempt: state.planningAttempt }, todos: state.todos, executionInsights: state.executionInsights ?? [] }) });
     if (state.deliveryConclusion && state.deliveryConclusion.revision === state.revision && state.deliveryConclusion.attemptId === state.acceptanceAttempt?.id) assembly.sections.push({ name: 'orchestrator-suite:delivery-conclusion', interpolate: false, text: '【交付验收结论 · 告知用户本任务完成了什么、实现了什么、整体效果与限制】\n' + JSON.stringify({ ...state.deliveryConclusion, actualVerifierAttempt: state.acceptanceAttempt, construction: state.delivery?.construction, constructionRequests: state.delivery?.constructionRequests, gaps: deliveryBundle(state).gaps }) + '\n请将上述有证据的结论向用户清晰表达；工具返回与系统上下文不是用户可见消息，不能据评分自动宣称通过。' });
     return assembly;
@@ -359,7 +382,7 @@ export function mount(ctx: Context, config: Config): void {
         const state = runtime.recent.get(body.sessionId);
         const task = state ? (({ catalog: _catalog, ...task }) => task)(state) : null;
         const assets = state?.catalog ? { skills: state.catalog.skills.length, plugins: state.catalog.plugins.length, mcp: state.catalog.mcp.length, memory: state.catalog.memory.length } : undefined;
-        return Response.json({ ok: true, version: VERSION, assessments: state ? assessmentChecklist(state) : [], sessionId: body.sessionId, preset: ctx.agentPresets.composedPreset(agent.ctx) ?? '', task, assets, pollMs: config.progressPollMs }, { headers: { 'cache-control': 'no-store' } });
+        return Response.json({ ok: true, version: VERSION, assessments: state && ctx.agentPresets.composedPreset(agent.ctx) === 'dispatch-orchestrator' ? assessmentChecklist(state) : [], sessionId: body.sessionId, preset: ctx.agentPresets.composedPreset(agent.ctx) ?? '', task, assets, pollMs: config.progressPollMs }, { headers: { 'cache-control': 'no-store' } });
       } catch (error) { return Response.json({ ok: false, error: String(error) }, { status: 503 }); }
     } }), 'orchestrator-suite progress route');
     child.effect(() => child.connection.fetch.register({ path: ROUTE, methods: ['POST'], requestBody: 'buffered', async fetch(request) {
