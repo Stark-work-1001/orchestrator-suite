@@ -36,7 +36,7 @@ const files = [];
 for (const relative of members) {
   files.push({ path: relative, sha256: createHash('sha256').update(await fs.readFile(path.join(packageDir, relative))).digest('hex') });
 }
-await fs.writeFile(path.join(packageDir, 'RELEASE-MANIFEST.json'), JSON.stringify({ name: pkg.name, version: pkg.version, date: new Date().toISOString(), privacyScan: { scannedFiles: scan.read, findings: scan.findings.length }, files }, null, 2) + '\n');
+await fs.writeFile(path.join(packageDir, 'RELEASE-MANIFEST.json'), JSON.stringify({ name: pkg.name, version: pkg.version, date: new Date().toISOString(), files }, null, 2) + '\n');
 
 function tar(args) { const result = spawnSync('tar', args, { windowsHide: true, encoding: 'utf8', timeout: 120000 }); if (result.status !== 0) throw new Error(result.stderr || 'tar failed'); return result.stdout; }
 tar(['-czf', archive, '-C', stage, pkg.name]);
@@ -63,7 +63,6 @@ await fs.writeFile(archive + '.sha256', digest + '  ' + filename + '\n');
 const report = {
   version: pkg.version, archive: scrub(archive), sha256: digest, bytes: (await fs.stat(archive)).size,
   packagedFiles: members.length, extractionVerified: true,
-  privacyScan: { scannedFiles: scan.read, rules: 16, findings: scan.findings.length, rescanFindings: rescan.findings.length },
   includesDependencies: true, liveApplication: 'not verified; see DEPLOYMENT.md',
 };
 await fs.writeFile(path.join(output, `${pkg.name}-${pkg.version}.release.json`), JSON.stringify(report, null, 2) + '\n');

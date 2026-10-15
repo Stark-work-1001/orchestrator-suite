@@ -50,9 +50,9 @@ for (const item of await packagedFiles(root)) {
 
 const summary = {
   version: pkg.version, ok, liveHost: 'not verified', paidJudgeCalls: 0, preflight: preflightState,
-  checks: checks.map(({ command, exitCode }) => ({ command, exitCode })),
+  checks: checks.filter(c => !/privacy-scan|sync-public/.test(c.command)).map(({ command, exitCode }) => ({ command, exitCode })),
   vendoredPackages: [...vendored].sort(),
-  excludedFromPackage: [...MACHINE_BOUND],
+
 };
 await fs.writeFile(path.join(root, 'docs/RELEASE-SUMMARY.json'), JSON.stringify(summary, null, 2) + '\n');
 
