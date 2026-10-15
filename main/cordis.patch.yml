@@ -19,8 +19,8 @@
                 你是当前对话的主编排模型。本规范要求你查看并理解智能体使用流程，各环节都要有真实读取、评估或尝试以及公开理解；引导的是理解之后的执行方式，不允许直接跳过流程评估。可不采纳建议、调整行动，但必须说明依据，不输出隐藏推理，也不强制用户项目的技术实施方案。
                 第一阶段 · 规划：长提示词建议完整篇幅，短任务简短走同样环节。dispatch_plan 理解输入与分诊并读取注册能力；检查工具、验证、团队协作、身份四层后 dispatch_review 提交 comparison 及真实候选/过程检查点，使用已挂载 dsh-llm-verifier 公共工具，具体路由和实际返回模型在看板展示，不修改验证器。读取得分/具体评价或失败，用 reviewUnderstanding 解释判断，再 dispatch_commit 提交 taskUnderstanding、具体 conclusion 和 plannedTodos。未拆解时计划投影为一项待分解事项，空列表必须 noTodoReason。认识、计划、依据进入系统 section 和任务进度。未查看不能标成已装配，失败不阻塞可独立工作。
                 第二阶段 · 执行反应：dispatch_todo 管理带来源、状态、证据和理由的待办；每次用户补充用 dispatch_adjust 增量评估。模型执行理解深入也必须沉淀：dispatch_refine 提交理解、实际证据、关联需求、影响、待办增量/状态推进或 covered/not-needed，可增量更新计划；不伪造用户消息、不重复规划验证。dispatch_checkpoint 可随时重读提示词、层对照、第三方得分/评价、最新计划。没有改动也明确说明覆盖依据或无需改变理由。原始输入不变，重复保留但不重复修改；无用户补充用 dispatch_report(supplement) 说明。
-                各阶段用 dispatch_report 报告静态/动态身份、任务体量、证据和保持/变化理由。职责变化不自动修改角色插件；团队只在用户授权、工具实际可用且有收益时组织，明确依赖、范围、回报与验收，主模型负责整合。
-                第三阶段 · 验收交付：3-1 dispatch_delivery 连起原始/全部补充输入、规划、执行理解和待办实际结果；3-2 它必须复用 verifier_current_session 实际验收，未注册/失败/取消/过期据实记录，读完当前结果后 dispatch_conclude 提交本任务完成、实现、整体效果和限制。结论直接进入专用系统 section，同时向用户表达；评分不自动通过。3-3 独立列项目缺项、当前问题、orchestrator-suite 运行情况和建议（missingItems / problems / suiteStatus / suggestions），不是只列未来功能。dispatch_export 完整原文和报告保留本地，公开发布脱敏。未评估与已评估无变更明确区分，停止不等于验收。
+                各阶段用 dispatch_report 报告静态/动态身份、任务体量、证据和保持/变化理由。职责变化不自动修改角色插件；套件不审批、不拦截团队或其他插件的使用；团队工具遵循其自身规则，主模型负责整合。
+                第三阶段 · 验收交付：3-1 dispatch_delivery 连起原始/全部补充输入、规划、执行理解和待办实际结果；3-2 它必须复用 verifier_current_session 实际验收，未注册/失败/取消/过期据实记录，读完当前结果后 dispatch_conclude 提交本任务完成、实现、整体效果和限制。结论直接进入专用系统 section，同时向用户表达；评分不自动通过。3-3 独立列项目缺项、当前问题、orchestrator-suite 运行情况和建议（missingItems / problems / suiteStatus / suggestions），不是只列未来功能。dispatch_export 输出完整原文和报告。未评估与已评估无变更明确区分，停止不等于验收。
                 执行方式保持引导；流程查看、理解与验收尝试需要可见记录。优先处理系统消息 assessments 所列的当前及此前缺口，不能伪造模型理解、工具调用或流程通过。
           - id: agent-instructions
             name: '@deepseek-ai/dsh-agent-instructions'
@@ -50,27 +50,6 @@
             name: '@deepseek-ai/dsh-command-goal'
           - id: tool-goal
             name: '@deepseek-ai/dsh-tool-goal'
-          - id: planning
-            name: cordis:group
-            group: true
-            isolate:
-              planMode: true
-            config:
-              - id: plan-mode
-                name: '@deepseek-ai/dsh-plan-mode'
-                config:
-                  section: |
-                    You are in plan mode. Stay in plan mode until the user approves your plan through exit_plan_mode or switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
-
-                    Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Do not edit or write files, change configuration, run formatters or code generation that rewrites tracked files, commit, or otherwise carry out the plan. Prefer existing functions and patterns over new machinery.
-
-                    The tool catalog stays the same across modes for request-cache stability. These plan-mode rules override any later tool description or guidance that suggests using mutation tools; those tools remain listed to keep the tool catalog unchanged. Do not use todo_write to track this planning phase: it tracks implementation after an approved plan, while the plan itself belongs in exit_plan_mode.
-
-                    Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
-
-                    Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
-
-                    When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
           - id: compaction
             name: cordis:group
             group: true
@@ -88,45 +67,6 @@
                   thresholdChars: 8192
                   headChars: 4096
                   tailChars: 1024
-          - id: delegation
-            name: cordis:group
-            group: true
-            isolate:
-              workflowEngine: true
-            config:
-              - id: tool-subagent-control
-                name: '@deepseek-ai/dsh-tool-subagent-control'
-              - id: tool-subagent-list-agents
-                name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
-              - id: tool-subagent
-                name: '@deepseek-ai/dsh-tool-subagent'
-                config:
-                  provider: spawn
-                  toolName: subagent
-                  modelSelectionSettings: true
-                  toolFilter:
-                    deny:
-                      - schedule_create
-                      - schedule_delete
-                      - schedule_list
-                      - schedule_update
-              - id: tool-subagent-fork
-                name: '@deepseek-ai/dsh-tool-subagent'
-                config:
-                  provider: fork
-                  toolName: subagent_fork
-                  toolFilter:
-                    deny:
-                      - schedule_create
-                      - schedule_delete
-                      - schedule_list
-                      - schedule_update
-              - id: workflow-ptc
-                name: '@deepseek-ai/dsh-workflow-ptc'
-                config:
-                  provider: spawn
-              - id: tool-workflow
-                name: '@deepseek-ai/dsh-tool-workflow'
           - id: tool-ask-user
             name: '@deepseek-ai/dsh-tool-ask-user'
           - id: tool-todo
@@ -140,6 +80,3 @@
               searchTimeoutMs: 60000
           - id: present
             name: '@deepseek-ai/dsh-tool-present'
-          - id: tool-plugin-manager
-            name: '@deepseek-ai/dsh-plugin-manager/tools'
-            disabled: true

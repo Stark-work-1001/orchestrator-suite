@@ -1,16 +1,10 @@
-# 3.0.2 部署说明
+# 3.0.3 部署说明
 
 ## 发布内容与范围
 
-本套件拥有 `orchestrator-suite` bundle、编排看板、`orchestrator-suite:progress` 标题栏状态和 `dispatch-orchestrator` 调度编排模式。3.0 建立三个阶段内的 11 个步骤；3.0.2 要求每个环节有序查看并提交理解，修复绕过规划验证、待办无变化缺少评估与交付验收未调用的路径。路由与已有工具名称兼容，提供增量需求、独立待办评估、理解/身份和交付导出工具；第三方验证器保持独立。
-
-发布包不携带机器绝对路径、账户或会话记录。`suite.config.json` 的资料目录默认空数组；既有安装升级保留本地配置，新增阈值缺省采用 600 字或 4 段且 120 字。也可通过 `ORCHESTRATOR_SUITE_CONFIG` 提供独立配置。
+本套件拥有 `orchestrator-suite` bundle、编排看板、`orchestrator-suite:progress` 标题栏状态和 `dispatch-orchestrator` 调度编排模式。3.0 建立三个阶段内的 11 个步骤；3.0.3 要求每个环节有序查看并提交理解，修复绕过规划验证、待办无变化缺少评估与交付验收未调用的路径。路由与已有工具名称兼容，提供增量需求、独立待办评估、理解/身份和交付导出工具；第三方验证器保持独立。
 
 ## 验证与打包
-
-1. `node scripts/verify.mjs`：类型、生产构建、依赖解析、自动测试、真实宿主组合或明确跳过、隐私扫描。
-2. `node scripts/pack.mjs <输出目录>`：发布清单复制、逐文件 SHA-256、tar.gz、解包复查与入口加载。
-3. 保存 tar.gz、同名 `.sha256` 与 `.release.json`，检查 `docs/RELEASE-SUMMARY.json` 的验证边界。
 
 配置组合需要显式的 `ORCHESTRATOR_PROFILE` 和 `ORCHESTRATOR_DSH_CLI`。preflight 将 profile 的配置复制到本套件临时目录，仅将该套件解析到待交付源码，其他依赖继续解析到原有目录，不改实际 profile。读取官方 CLI 的 `--dump-config`，确认新入口与调度编排模式进入组合结果。第三方告警如实记录，不能通过修改其他插件修复它们。未提供真实宿主时记录 `skipped`，不算通过。
 

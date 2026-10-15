@@ -1,55 +1,48 @@
-# Orchestrator Suite 3.0.2
+# Orchestrator Suite 3.0.3
 
-[简体中文](README.md) · [Changelog](CHANGELOG.md) · [Release notes](docs/RELEASE-NOTES-3.0.2.md)
+[简体中文](README.md) · [Changelog](CHANGELOG.md) · [Release notes](docs/RELEASE-NOTES-3.0.3.md)
 
-A DeepSeek Harness (DSH) suite providing an orchestration board, task progress status and the **Dispatch Orchestration** preset. It shows where agent understanding, execution or verification needs attention without prescribing a project’s technical implementation.
+An advisory orchestration suite for DeepSeek Harness: a capability board, compact progress indicator and its own **调度编排模式 / dispatch-orchestrator** preset. Models report their understanding before executing; users can inspect phase diagrams, step reports and actual evidence.
 
-Each step requires real inspection, assessment or an invocation attempt and visible understanding. Execution choices remain advisory. Unassessed work, explicit no-change decisions, actual changes and failed verification remain distinguishable.
+## Preset scope
 
-## What is new
+| Active preset | Behavior |
+| --- | --- |
+| dispatch-orchestrator | Three phases and eleven steps, with visible understanding, evidence, requirement changes and todo history |
+| Any other preset | One initial comparison of registered tools, verification, collaboration and identity; report the understanding, then show only “Orchestrated” in the indicator |
 
-- Reuses mounted `dsh-llm-verifier` public tools. Task route controls and returned judge models, scores and evaluations appear in the board without modifying the verifier.
-- Integrated task understanding and concrete plans seed initial todos and appear in system sections and progress. An unsplit plan becomes one pending item; an empty list needs an explicit reason.
-- Execution insights update todos and plans through `dispatch_refine`, with actual evidence and history. Read-only `dispatch_checkpoint` revisits planning inputs without calling judges.
-- Final verification remains with the existing verifier. A dedicated conclusion records completed work, implemented behavior, overall effect and limitations. Separate feedback covers project gaps, problems and suite behavior.
+Ordinary presets use relic_prepare and relic_result once. The indicator stays “Layer comparison” until the model submits a real result. Follow-ups do not start a dispatch workflow. Switching presets uses the host’s current selection, without changing other plugins’ dispatch presets.
 
 ## Three phases
 
-| Phase | Evidence |
-| --- | --- |
-| Planning | Original input, triage, registered tools/verification/team/identity layers, actual evaluation, integrated understanding and plan |
-| Execution reaction | User supplements and deeper execution insights, incremental todo changes or explicit no-change decisions, ongoing evidence |
-| Delivery verification | 3-1 Requirement/result trace; 3-2 actual verifier acceptance and conclusion; 3-3 project gaps and suite feedback |
+1. Planning: original prompt, triage, four registered layers, actual third-party evaluation and integrated understanding/execution plan.
+2. Execution reaction: assess supplements, update or explicitly retain todos, and record deeper execution insights.
+3. Delivery verification: trace all requirements to results, attempt current-session acceptance, state the outcome and separate project gaps/problems/suite feedback.
 
-Use `dispatch_plan` to understand input; `dispatch_review` with two real candidates for proposal comparison, three or more for proposal selection, or real steps and one-based checkpoints for tracking. The legacy strategy/direct-execution baseline comparison is explicitly limited.
+Steps require inspection and public understanding, while execution choices remain advisory. The compact indicator opens into phase/step diagrams and evidence; missing assessments, no-change decisions, modifications and failed attempts are distinct.
 
-After reading the actual result, `dispatch_commit` submits `reviewUnderstanding`, `taskUnderstanding`, `conclusion` and `plannedTodos` (`text`, `reason`). An empty list requires `noTodoReason`. `dispatch_adjust` assesses follow-ups; `dispatch_todo` maintains work; `dispatch_refine` records execution insight and incremental updates. No change needs an explicit decision and explanation.
+Use dispatch_plan, dispatch_review and dispatch_commit for planning; dispatch_adjust, dispatch_refine and dispatch_checkpoint for incremental execution. dispatch_delivery attempts verifier_current_session; dispatch_conclude records completion, implementation, overall effect and limitations. Understanding and conclusions enter system context and the progress view; the model must also tell the user, since system context is not automatically a visible chat message. dispatch_report records stage/identity reports and dispatch_export preserves the full task history. State is in memory; export before restarting.
 
-`dispatch_delivery` traces requirements and actually invokes `verifier_current_session`. After reading the current attempt, `dispatch_conclude` submits `completed`, `implemented`, `overallEffect` and `limitations`. Record `missingItems`, `problems`, `suiteStatus` and `suggestions` separately. `dispatch_export` returns full prompts and histories locally.
+## Plugin cooperation
 
-The original prompt remains unchanged. Supplements are preserved and assessed without restarting initial planning. System sections are model context; the model must also communicate the conclusion to the user. They are not fabricated chat messages.
+The suite owns only its tools, routes, UI and preset. It adds no competing plan mode/delegation engine or tool deny list, and never changes external plugins. Team, memory, skill, MCP and identity tools remain governed by the host and active preset. Discovery is not evidence of successful execution.
 
-## Integration boundaries
+The mounted dsh-llm-verifier remains independent. Board controls select this task’s planning tool route/repeats; the original verifier owns judge configuration and returns actual models/evaluations. Missing tools, failures, cancellation and stale results remain explicit. Scores do not imply acceptance.
 
-Judge models remain managed through DSH LLM Verifier settings. Suite controls only select this task’s next public planning tool and repeat count; saving does not call a judge. No verifier source, settings or lifecycle changes. Private acceptance thresholds are never inferred.
+## UI stability in 3.0.3
 
-Missing evidence, unavailable tools, failures, cancellation and stale results are reported honestly. Identical delivery revisions reuse finished/failed attempts; new requirements, plans, todos or delivery evidence invalidate acceptance. Explicit `dispatch_accept` can retry. Scores, complete process assessment, idle and accepted delivery are different facts.
+Each mounted slot owns its stylesheet, avoiding shared-style deletion by an old mount. Explicit control styles, single-line labels, responsive width limits and viewport-bound details keep the header compact. No extra native process or Rust wrapper is required for this style-lifecycle/layout repair.
 
-## Development and distribution
+## Install and develop
 
-The surrounding workspace uses local `dev/`, sanitized GitHub source `main/` and sanitized artifacts `release/`. This repository contains the `main/` content, not local development transcripts or installed configuration.
+Node.js ≥22.19; DSH >=0.2.1-0 <0.3. Work from main/ in this repository. Distribution archives are self-contained plugin directories.
 
-Requires Node.js ≥22.19 and DSH `>=0.2.1-0 <0.3`. Install source dependencies with `npm install`, then run:
-
-```sh
+~~~sh
+npm install
 npm run verify
-node scripts/pack.mjs
-```
+node scripts/pack.mjs <output-directory>
+~~~
 
-Release archives include built assets and self-contained dependencies. No toolchain is borrowed from other plugins. Profile checks require deployment-provided environment variables and report skipped checks honestly.
+Install through DSH’s local bundle workflow. The upgrade script changes only suite distribution files and preserves configuration/rollback copies. See [deployment](DEPLOYMENT.md). Composition checks, fixtures and disk installation do not prove live host activation; reload through the host’s supported workflow and check the actual version.
 
-In-place upgrades back up owned files, preserve local configuration and verify external hashes. Other plugins, status bars, presets and profiles remain untouched. Disk installation does not prove live activation; see [deployment](DEPLOYMENT.md).
-
-Task records survive turns in process memory, not restarts. Export before restarting. Full prompt exports remain local; publish a separate sanitized report. Automated checks cover types, build, dependencies, regression, composition and privacy; extraction verifies file hashes and rescans content. Test judges are fixtures, not live DSH or paid evaluation evidence.
-
-See [privacy](PRIVACY.md), [version history](CHANGELOG.md) and [license sections](LICENSE). Vendored dependencies retain their own licenses.
+MIT. Dependencies retain their own licenses; see [LICENSE](LICENSE).

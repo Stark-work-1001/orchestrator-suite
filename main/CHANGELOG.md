@@ -1,12 +1,18 @@
 # 版本改动 / Version history
 
-历史条目描述当时版本；现行行为以 3.0.2 文档为准。
+历史条目描述当时版本；现行行为以 3.0.3 文档为准。
+
+## 3.0.3
+
+修复共享样式卸载造成的界面退化，缩短状态标签并限制宽度、视口浮层。三阶段只用于套件自建调度编排模式；其他预设开始时一次多层对照，完成后仅显示“已经编排”。移除重复计划/委派引擎、工具过滤和其他预设中的完整流程注入。理解先进入系统上下文并由模型汇报，阶段与证据在任务进度展开呈现。
+
+Fixes shared-style disposal and crowded header controls. Limits the full workflow to the suite preset; other presets receive one layer comparison and a compact result. Removes competing planning/delegation services and tool filters, with live preset switching and middleware passthrough coverage.
 
 ## 3.0.2
 
-复用 DSH 验证器，按证据设置/展示规划工具路由、实际裁判模型与评分。装配认识、具体计划和初始待办写入系统上下文；执行认识驱动增量待办/计划并支持重读依据。交付结论独立系统 section；建设需求含项目缺项、问题及套件建议。双语说明、短发布说明、dev/main/release 隔离和公开材料脱敏。
+复用 DSH 验证器，按证据设置/展示规划工具路由、实际裁判模型与评分。装配认识、具体计划和初始待办写入系统上下文；执行认识驱动增量待办/计划并支持重读依据。交付结论独立系统 section；建设需求含项目缺项、问题及套件建议。双语说明、短发布说明与版本记录。
 
-Reuses DSH verifier tools with task route controls and actual judge evidence. Adds integrated understanding, initial todos, execution insights, checkpoints, structured conclusions and suite feedback. Adds bilingual documentation and sanitized distribution boundaries.
+Reuses DSH verifier tools with task route controls and actual judge evidence. Adds integrated understanding, initial todos, execution insights, checkpoints, structured conclusions and suite feedback. Adds bilingual documentation and version records.
 
 ## 3.0.1
 
@@ -22,9 +28,9 @@ Three phases, eleven steps, immutable original prompts, supplements, plan/todo h
 
 ## 2.3.2
 
-发布可移植性、环境配置与脱敏门禁；清除固定机器路径，排除本机报告；打包前扫描、解包复扫，不改运行功能。
+改善可移植发布、环境配置、打包及解包校验，不改运行功能。
 
-Portable packaging, explicit environment configuration, privacy gates and extraction rescans.
+Portable packaging, explicit environment configuration and archive verification.
 
 ## 2.3.1
 
@@ -46,6 +52,6 @@ Independent board/header progress, public discovery, system sections and existin
 
 ## 2.1.0
 
-仅保留历史基础包，缺少可复核逐项清单，不补造变更。未脱敏旧包只留 dev。
+仅保留历史基础包，缺少可复核逐项清单，不补造变更。
 
-Historical base archive retained privately; no reliable per-change record is available.
+No reliable per-change record is available for the historical base version.

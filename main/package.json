@@ -1,18 +1,18 @@
 {
   "name": "orchestrator-suite",
-  "version": "3.0.2",
-  "description": "有序流程评估、引导执行、显式待办决策与必尝试交付验收",
+  "version": "3.0.3",
+  "description": "Preset-scoped advisory orchestration with stable compact UI",
   "type": "module",
-  "main": "lib/host-3.0.2.js",
+  "main": "lib/host-3.0.3.js",
   "exports": {
-    ".": "./lib/host-3.0.2.js",
-    "./host": "./lib/host-3.0.2.js",
+    ".": "./lib/host-3.0.3.js",
+    "./host": "./lib/host-3.0.3.js",
     "./client": "./lib/client.js",
     "./package.json": "./package.json"
   },
   "files": [
-    "lib/host-3.0.2.js",
-    "lib/host-3.0.2.js.map",
+    "lib/host-3.0.3.js",
+    "lib/host-3.0.3.js.map",
     "lib/client.js",
     "lib/client.css",
     "src",
@@ -23,7 +23,6 @@
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
-    "PRIVACY.md",
     ".gitignore",
     "DEPLOYMENT.md",
     "LICENSE",
